@@ -4,7 +4,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE DeriveGeneric      #-}
 
-module Server (Remote, runServer, runCommand) where
+module Server (Remote, evalE, runServer, runCommand) where
 
 import           Graphics.Blank hiding (send, wait)
 import qualified Graphics.Blank as Blank
@@ -33,18 +33,15 @@ $(makeLenses ''ServerState)
 type Remote = StateT ServerState (ReaderT DeviceContext IO)
 
 runCommand :: Action a -> Remote a
-runCommand = runRCommand
+runCommand (Button i) = LitB <$> button i
+runCommand (Led i b ) = led i (evalE b)
+runCommand (Wait ms ) = wait ms
+runCommand (WaitE ms) = wait (evalE ms)
 
 evalE :: E a -> a
 evalE (LitI i) = i
 evalE (LitB b) = b
 evalE (Not e)  = not (evalE e)
-
-runRCommand :: Action a -> Remote a
-runRCommand (Button i) = LitB <$> button i
-runRCommand (Led i b ) = led i (evalE b)
-runRCommand (Wait ms ) = wait ms
-runRCommand (WaitE ms) = wait (evalE ms)
 
 runServer :: Remote () -> IO ()
 runServer r = blankCanvas (3000 { events = ["keyup", "keydown"] })

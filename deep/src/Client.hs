@@ -24,6 +24,9 @@ wait = Action . Wait
 waitE :: E Int -> R ()
 waitE = Action . WaitE
 
+ifE :: E Bool -> R a -> R a -> R a
+ifE = IfE
+
 litB :: Bool -> E Bool
 litB = LitB
 
@@ -38,4 +41,9 @@ send (Return x) = return x
 send (Bind m f) = send m >>= send . f
 send (Action a) = runCommand a
 send (Loop m  ) = forever (send m)
+send (IfE eb t f) = do
+  b <- send (Return eb)
+  if evalE b   -- XXX: Is this the right way to do it?
+    then send t
+    else send f
 
