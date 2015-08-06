@@ -20,13 +20,15 @@ fireRule fnName lemmaName@(LemmaName ruleName) = do
     setPath $ rhsOf fnName
     apply . anyBU $ lemmaForward lemmaName
 
--- lit b ==> r, when b <- eval r
-litElim :: Name -> Shell ()
-litElim fnName = do
-  scope $ do
-    setPath $ rhsOf fnName
-
-    -- TODO: Finish
+introCompose :: Rewrite LCore
+introCompose = serialise
+  [pathRs [lamBody] $
+    [pathR [appArg] $
+      abstract "r"  -- TODO: Generalize this to work for any variable name
+    ,fold "."
+    ]
+  ,etaReduce
+  ]
 
 script :: Shell ()
 script = do
@@ -44,7 +46,13 @@ script = do
   fireRule "main" "commute-not"  -- lit (not b) ==> notB (lit b)
   fireRule "main" "lit-unLit"
 
-  -- fireRule "main" "ledE-intro"
-  -- fireRule "main" "lower-led"
+  fireRule "main" "liftR-hom_"
 
+  assumeRule "liftR-hom"
+
+  scope $ do
+    setPath $ rhsOf "main"
+    apply $ oneBU introCompose
+
+    apply . oneBU $ lemmaForward "liftR-hom"
 

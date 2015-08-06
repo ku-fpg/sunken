@@ -27,6 +27,7 @@ send r = blankCanvas (3000 { events = ["keyup", "keydown"] })
     $ \context -> do
   Blank.send context initUI
   runReaderT (evalStateT r ([False, False, False, False], [False, False, False, False])) context
+{-# NOINLINE send #-}
 
 initUI :: Canvas ()
 initUI = do
@@ -110,6 +111,7 @@ loop :: R a -> R a
 loop r = forever $ do
   updateButtons
   r
+{-# NOINLINE loop #-}
 
 wait :: Int -> R ()
 wait ms =
@@ -122,7 +124,7 @@ main = do
       b <- button 0
       led 0 b
       led 1 (not b)
-      wait 100
+      -- wait 100
 
 -- Shallow->Deep transformation:
 -- {-# RULES "lower-button"
@@ -154,7 +156,9 @@ main = do
 
 {-# RULES "lower-button" [~]
       forall i f.
-        button i >>= f = buttonE i >>= (\r -> f (unLit r))
+        button i >>= f
+          =
+        liftR (buttonE i) >>= (\r -> f (unLit r))
   #-}
 
 
@@ -167,7 +171,7 @@ main = do
 
 {-# RULES "ledE-intro" [~]
       forall i b.
-        led i b = ledE i (lit b)
+        led i b = liftR (ledE i (lit b))
   #-}
 
 {-# RULES "commute-not" [~]
@@ -182,6 +186,20 @@ main = do
         lit (unLit b)
           =
         b
+  #-}
+
+{-# RULES "liftR-hom" [~]
+      forall x f.
+        liftR x >>= (liftR . f)
+          =
+        liftR (x >>= f)
+  #-}
+
+{-# RULES "liftR-hom_" [~]
+      forall x y.
+      liftR x >> liftR y
+        =
+      liftR (x >> y)
   #-}
 
 
