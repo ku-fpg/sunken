@@ -126,39 +126,21 @@ main = do
       led 1 (not b)
       -- wait 100
 
+
 -- Shallow->Deep transformation:
--- {-# RULES "lower-button"
---       forall i.
---         button i = do { r <- buttonE i ; eval r }
---   #-}
 
--- {-# RULES "lower-button"
---       forall i.
---         button i = buttonE i >>= eval
---   #-}
-
--- {-# RULES "lower-led" forall i b . led i b = ledE i (lit b) #-}
+{-# RULES "ledE-intro" forall i b . led i b = ledE i (lit b) #-}
 
 {-# RULES "lit-of-unLit" [~]
       forall x.
         lit (unLit x) = x
   #-}
 
--- {-# RULES "lower-button" [~]
---       forall i.
---         button i = do { r <- buttonE i ; return (unLit r) }
---   #-}
-
--- {-# RULES "lower-button" [~]
---       forall i f.
---         button i >>= f = buttonE i >>= (\r -> return (unLit r) >>= f)
---   #-}
-
 {-# RULES "lower-button" [~]
       forall i f.
         button i >>= f
           =
-        liftR (buttonE i) >>= (\r -> f (unLit r))
+        buttonE i >>= (\r -> f (unLit r))
   #-}
 
 
@@ -169,11 +151,6 @@ main = do
         eval r
  #-}
 
-{-# RULES "ledE-intro" [~]
-      forall i b.
-        led i b = liftR (ledE i (lit b))
-  #-}
-
 {-# RULES "commute-not" [~]
       forall b.
         lit (not b)
@@ -183,46 +160,6 @@ main = do
 
 {-# RULES "lit-unLit" [~]
       forall b.
-        lit (unLit b)
-          =
-        b
+        lit (unLit b) = b
   #-}
-
-{-# RULES "liftR-hom" [~]
-      forall x f.
-        liftR x >>= (liftR . f)
-          =
-        liftR (x >>= f)
-  #-}
-
-{-# RULES "liftR-hom_" [~]
-      forall x y.
-      liftR x >> liftR y
-        =
-      liftR (x >> y)
-  #-}
-
-
--- {-# RULES "bind-left-id" [~]
---       forall (x :: Bool) (f :: Bool -> R ()).
---         (return x :: R Bool) >>= f
---           =
---         f x
---   #-}
-
-
-
--- {-# RULES "reassoc-bind" [~]
---       forall (m :: R a) (f :: a -> R b) (g :: b -> R c).
---         (m >>= f) >>= g
---           =
---         m >>= (\r -> f r >>= g)
---   #-}
-
--- {-# RULES "verbose-bind" [~]
---       forall (ma :: R a) (mb :: R b).
---         ma >> mb
---           =
---         ma >>= (\v -> mb)
---   #-}
 

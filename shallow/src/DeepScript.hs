@@ -34,6 +34,7 @@ script :: Shell ()
 script = do
   -- *** Step 1: lower-button
   fireRule "main" "lower-button"
+
     -- Put unLit in the right place
   scope $ do
     setPath . parentOfCoreTC $ applicationOf "unLit"
@@ -45,14 +46,4 @@ script = do
   fireRule "main" "ledE-intro"
   fireRule "main" "commute-not"  -- lit (not b) ==> notB (lit b)
   fireRule "main" "lit-unLit"
-
-  fireRule "main" "liftR-hom_"
-
-  assumeRule "liftR-hom"
-
-  scope $ do
-    setPath $ rhsOf "main"
-    apply $ oneBU introCompose
-
-    apply . oneBU $ lemmaForward "liftR-hom"
 
