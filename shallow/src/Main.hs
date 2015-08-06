@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-import           Graphics.Blank hiding (send, wait)
+import           Graphics.Blank hiding (send, wait, eval)
 import qualified Graphics.Blank as Blank
 
 import           Web.KeyCode
@@ -13,8 +13,8 @@ import           Control.Lens
 
 import           Data.Maybe (fromMaybe)
 
+import           Deep
 
-type R = StateT ([Bool], [Bool]) (ReaderT DeviceContext IO)
 
 buttons :: Lens' ([Bool], [Bool]) [Bool]
 buttons = _1
@@ -76,6 +76,7 @@ button :: Int -> R Bool
 button buttonNum = do
   bs <- use buttons
   return $ fromMaybe False $ bs ^? ix buttonNum
+{-# NOINLINE button #-}
 
 readButtonNum :: Key -> Maybe Int
 readButtonNum KeyH = Just 0
@@ -103,6 +104,7 @@ led ledNum state = do
     runBlank c = do
       context <- ask
       liftIO $ Blank.send context c
+{-# NOINLINE led #-}
 
 loop :: R a -> R a
 loop r = forever $ do
@@ -121,4 +123,88 @@ main = do
       led 0 b
       led 1 (not b)
       wait 100
+
+-- Shallow->Deep transformation:
+-- {-# RULES "lower-button"
+--       forall i.
+--         button i = do { r <- buttonE i ; eval r }
+--   #-}
+
+-- {-# RULES "lower-button"
+--       forall i.
+--         button i = buttonE i >>= eval
+--   #-}
+
+-- {-# RULES "lower-led" forall i b . led i b = ledE i (lit b) #-}
+
+{-# RULES "lit-of-unLit" [~]
+      forall x.
+        lit (unLit x) = x
+  #-}
+
+-- {-# RULES "lower-button" [~]
+--       forall i.
+--         button i = do { r <- buttonE i ; return (unLit r) }
+--   #-}
+
+-- {-# RULES "lower-button" [~]
+--       forall i f.
+--         button i >>= f = buttonE i >>= (\r -> return (unLit r) >>= f)
+--   #-}
+
+{-# RULES "lower-button" [~]
+      forall i f.
+        button i >>= f = buttonE i >>= (\r -> f (unLit r))
+  #-}
+
+
+{-# RULES "eval-intro" [~]
+      forall r.
+        return (unLit r)
+          =
+        eval r
+ #-}
+
+{-# RULES "ledE-intro" [~]
+      forall i b.
+        led i b = ledE i (lit b)
+  #-}
+
+{-# RULES "commute-not" [~]
+      forall b.
+        lit (not b)
+          =
+        notB (lit b)
+  #-}
+
+{-# RULES "lit-unLit" [~]
+      forall b.
+        lit (unLit b)
+          =
+        b
+  #-}
+
+
+-- {-# RULES "bind-left-id" [~]
+--       forall (x :: Bool) (f :: Bool -> R ()).
+--         (return x :: R Bool) >>= f
+--           =
+--         f x
+--   #-}
+
+
+
+-- {-# RULES "reassoc-bind" [~]
+--       forall (m :: R a) (f :: a -> R b) (g :: b -> R c).
+--         (m >>= f) >>= g
+--           =
+--         m >>= (\r -> f r >>= g)
+--   #-}
+
+-- {-# RULES "verbose-bind" [~]
+--       forall (ma :: R a) (mb :: R b).
+--         ma >> mb
+--           =
+--         ma >>= (\v -> mb)
+--   #-}
 
