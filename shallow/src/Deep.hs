@@ -8,6 +8,7 @@ module Deep
   ,lit
   ,unLit
   ,notB
+  ,module Types
   )
   where
 
@@ -15,11 +16,7 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Graphics.Blank (DeviceContext)
 
-type R = StateT ([Bool], [Bool]) (ReaderT DeviceContext IO)
-
-data E a where
-  LitB :: Bool -> E Bool
-  Not  :: E Bool -> E Bool
+import           Types
 
 eval :: E Bool -> R Bool
 eval = undefined
