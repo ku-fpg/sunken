@@ -2,7 +2,9 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Send
-  (send)
+  (send
+  ,evalRemote
+  )
   where
 
 import           Graphics.Blank hiding (eval, send)

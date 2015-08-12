@@ -33,6 +33,13 @@ unLit = undefined
         buttonE i >>= (\r -> return (unLit r))
   #-}
 
+{-# RULES "evalRemote-intro" [~]
+      forall r.
+        return (unLit r)
+          =
+        evalRemote r
+  #-}
+
 {-# RULES "commute-lit-not" [~]
       forall b.
         lit (not b)
