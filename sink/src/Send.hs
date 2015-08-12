@@ -34,9 +34,11 @@ type Remote = StateT ServerState (ReaderT DeviceContext IO)
 
 runCommand :: Action a -> Remote a
 runCommand (Button i) = LitB <$> buttonR i
-runCommand (Led i b ) = ledR i (eval b)
+runCommand (Led i b ) = ledR i (evalE b)
 runCommand (Wait ms ) = waitR ms
 
+evalRemote :: E a -> Remote a
+evalRemote = sendR . Action . LitA
 
 send :: R () -> IO ()
 send r = blankCanvas (3000 { events = ["keyup", "keydown"] })

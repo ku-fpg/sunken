@@ -1,11 +1,11 @@
 {-# LANGUAGE GADTs #-}
 module Eval
-  (eval)
+  (evalE)
   where
 
 import           Types
 
-eval :: E a -> a
-eval (LitB b) = b
-eval (Not  b) = not (eval b)
+evalE :: E a -> a
+evalE (LitB b) = b
+evalE (Not  b) = not (evalE b)
 

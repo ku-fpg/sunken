@@ -13,6 +13,7 @@ data Action a where
   Button :: Int -> Action (E Bool)
   Led    :: Int -> E Bool -> Action ()
   Wait   :: Int -> Action ()
+  LitA   :: E a -> Action a
 
 data R a where
   Action :: Action a -> R a
