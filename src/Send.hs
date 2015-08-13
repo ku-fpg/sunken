@@ -26,8 +26,8 @@ import           Deep
 
 data ServerState
   = ServerState
-    { _buttons :: [Bool]
-    , _leds    :: [Bool]
+    { _buttons :: (Bool, Bool, Bool, Bool)
+    , _leds    :: (Bool, Bool, Bool, Bool)
     }
 
 $(makeLenses ''ServerState)
@@ -49,7 +49,7 @@ send r = blankCanvas (3000 { events = ["keyup", "keydown"] })
   runReaderT (evalStateT (sendR r) defaultServerState) context
   where
     defaultServerState
-      = ServerState [False, False, False, False] [False, False, False, False]
+      = ServerState (False, False, False, False) (False, False, False, False)
 
 
 sendR :: R a -> Remote a
@@ -60,11 +60,11 @@ sendR (Loop m  ) = forever (sendR m)
 
 initUI :: Canvas ()
 initUI = do
-  drawLEDs [False, False, False, False]
+  drawLEDs (False, False, False, False)
   stroke ()
 
-drawLEDs :: [Bool] -> Canvas ()
-drawLEDs [a, b, c, d] = do
+drawLEDs :: (Bool, Bool, Bool, Bool) -> Canvas ()
+drawLEDs (a, b, c, d) = do
   beginPath ()
   arc (100+offset, 75, 20, 0, 2*pi, False)
   closePath ()
@@ -93,7 +93,6 @@ drawLEDs [a, b, c, d] = do
   stroke()
   where
     offset = 35
-drawLEDs _ = error "drawLeds: You must give a list of exactly 4 LEDs"
 
 buttonR :: Int -> Remote Bool
 buttonR buttonNum = do
