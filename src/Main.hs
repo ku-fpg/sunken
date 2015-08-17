@@ -13,6 +13,7 @@ main = send $ do
 
 unLit :: E Bool -> Bool
 unLit = undefined
+{-# NOINLINE unLit #-}
 
 {-# RULES "led-to-ledE" [~]
       forall n i.
@@ -30,7 +31,14 @@ unLit = undefined
       forall i.
         button i
           =
-        buttonE i >>= (\r -> return (unLit r))
+        do { x <- buttonE i; return (unLit x) }
+  #-}
+
+{-# RULES ">>=-assoc" [~]
+      forall m f g.
+        (m >>= f) >>= g
+          =
+        m >>= (\e -> f e >>= g)
   #-}
 
 {-# RULES "evalRemote-intro" [~]
