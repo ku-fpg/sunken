@@ -5,7 +5,7 @@ import           HERMIT.API.Types
 
 assumeRule :: String -> Shell ()
 assumeRule ruleName = do
-  eval $ "rule-to-lemma \"" ++ ruleName ++ "\""
+  eval $ "rule-to-lemma " ++ show ruleName
   shellEffect $ proveLemma (LemmaName ruleName)
   proofCmd assume
 
@@ -17,12 +17,16 @@ script = do
         [ "led-to-ledE"
         , "lower-button"
         , ">>=-assoc"
+        , "commute-lit-not"
         ]
 
   setPath $ rhsOf "main"
 
-  apply . anyBU $ lemmaForward "led-to-ledE"
-  apply . anyBU $ lemmaForward "lower-button"
-  -- XXX: Not working:
-  -- apply . anyBU $ lemmaForward ">>=-assoc"
+  mapM_ (apply . anyBU . lemmaForward)
+        [ "led-to-ledE"
+        , "lower-button"
+        -- XXX: Not working:
+        -- , ">>=-assoc"
+        , "commute-lit-not"
+        ]
 
