@@ -1,4 +1,4 @@
-# sunken (Shallow -> Deep)
+# sunken (Shallow &rarr; Deep)
 
 ## Instructions
 You can build an executable using either a shallow or deep embedding. Inside the `src` directory:
