@@ -38,7 +38,7 @@ unLit = undefined
       forall (m :: R a) (f :: a -> R b) (g :: b -> R c).
         (m >>= f) >>= g
           =
-        m >>= (\e -> f e >>= g)
+        m >>= (\r -> f r >>= g)
   #-}
 
 {-# RULES ">>=-left-id" [~]
