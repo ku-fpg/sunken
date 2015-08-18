@@ -32,4 +32,5 @@ instance Applicative R where
 instance Monad R where
   return = Return
   (>>=)  = Bind
+  a >> b = a >>= const b  -- XXX: Why is this needed to avoid a core lint warning?
 

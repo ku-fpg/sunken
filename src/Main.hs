@@ -35,10 +35,17 @@ unLit = undefined
   #-}
 
 {-# RULES ">>=-assoc" [~]
-      forall m f g.
+      forall (m :: R a) (f :: a -> R b) (g :: b -> R c).
         (m >>= f) >>= g
           =
         m >>= (\e -> f e >>= g)
+  #-}
+
+{-# RULES ">>=-left-id" [~]
+      forall (x :: a) (f :: a -> R b).
+        return x >>= f
+          =
+        f x
   #-}
 
 {-# RULES "evalRemote-intro" [~]

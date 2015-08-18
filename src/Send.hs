@@ -24,6 +24,8 @@ import           Types
 import           Eval
 import           Deep
 
+import           Debug.Trace
+
 data ServerState
   = ServerState
     { _buttons :: (Bool, Bool, Bool, Bool)
@@ -35,9 +37,10 @@ $(makeLenses ''ServerState)
 type Remote = StateT ServerState (ReaderT DeviceContext IO)
 
 runCommand :: Action a -> Remote a
-runCommand (Button i) = LitB <$> buttonR i
-runCommand (Led i b ) = ledR i (evalE b)
-runCommand (Wait ms ) = waitR ms
+runCommand (Button i)        = LitB <$> buttonR i
+runCommand (Led i b@(Not _)) = trace "Evaluating on server..." $ ledR i (evalE b)
+runCommand (Led i b)         =                                   ledR i (evalE b)
+runCommand (Wait ms )        = waitR ms
 
 evalRemote :: E a -> Remote a
 evalRemote = sendR . Action . LitA

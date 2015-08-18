@@ -9,15 +9,18 @@ assumeRule ruleName = do
   shellEffect $ proveLemma (LemmaName ruleName)
   proofCmd assume
 
+fullBetaReduce :: Rewrite LCore
+fullBetaReduce = betaReduce >>> letSubst
+
 script :: Shell ()
 script = do
-  eval "set-pp-type Detailed"
-
   mapM_ assumeRule
         [ "led-to-ledE"
         , "lower-button"
         , ">>=-assoc"
+        , ">>=-left-id"
         , "commute-lit-not"
+        , "lit-of-unLit"
         ]
 
   setPath $ rhsOf "main"
@@ -25,8 +28,13 @@ script = do
   mapM_ (apply . anyBU . lemmaForward)
         [ "led-to-ledE"
         , "lower-button"
-        -- XXX: Not working:
-        -- , ">>=-assoc"
+        , ">>=-assoc"
         , "commute-lit-not"
         ]
+
+  apply . anyBU $ fullBetaReduce
+  apply . anyBU $ lemmaForward ">>=-left-id"
+
+  apply . anyBU $ fullBetaReduce
+  apply . anyBU $ lemmaForward "lit-of-unLit"
 
