@@ -58,6 +58,10 @@ sendR (Return x) = return x
 sendR (Bind m f) = sendR m >>= sendR . f
 sendR (Action a) = runCommand a
 sendR (Loop m  ) = forever (sendR m)
+sendR (If b t f)
+  | trace "Evaluating if on server..." False = error "Never reached"
+  | evalE b      = sendR t
+  | otherwise    = sendR f
 
 initUI :: Canvas ()
 initUI = do

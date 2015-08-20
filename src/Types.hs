@@ -20,7 +20,9 @@ data R a where
   Bind   :: R a -> (a -> R b) -> R b
   Return :: a -> R a
   Loop   :: R () -> R ()
-  IfE    :: E Bool -> R a -> R a -> R a
+  If     :: E Bool -> R a -> R a -> R a
+
+-- {-# NOINLINE Action #-}   -- XXX: How do we do this?
 
 instance Functor R where
   fmap = liftM

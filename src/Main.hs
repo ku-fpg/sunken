@@ -6,10 +6,15 @@ import           Types
 main :: IO ()
 main = send $ do
   loop $ do
-     b <- button 0
-     led 0 b
-     led 1 (not b)
-     wait 100
+    b <- button 0
+    led 0 b
+    led 1 (not b)
+
+    if b
+      then led 3 True
+      else led 3 (not (not (not (not b))))  -- To make this more complex
+
+    wait 100
 
 unLit :: E Bool -> Bool
 unLit = undefined
@@ -53,5 +58,12 @@ unLit = undefined
         lit (not b)
           =
         notE (lit b)
+  #-}
+
+{-# RULES "If-intro/Action" [~]
+      forall r f t.
+        Action (case unLit r of False -> f ; True -> t)
+          =
+        If r (Action f) (Action t)
   #-}
 
