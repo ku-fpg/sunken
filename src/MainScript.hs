@@ -14,29 +14,6 @@ assumeRule ruleName = do
 fullBetaReduce :: Rewrite LCore
 fullBetaReduce = betaReduce >>> letSubst
 
--- | Find and deepen an "if" (actually a case match on an unLit application)
-deepenIf :: Rewrite LCore
-deepenIf =
-  focus (consider CaseOf)
-        undefined
-
--- | lit (not b) ==> notE (lit b)
-commuteLitNot :: Rewrite LCore
-commuteLitNot = undefined
-
-lemmaBU :: LemmaName -> Rewrite LCore
-lemmaBU = anyBU . lemmaForward
-
--- lemmaBackBU :: LemmaName -> Rewrite LCore
-
--- | Apply rewrite to both case alts of a Core "if"
-bothIfAlts :: Rewrite LCore -> Rewrite LCore
-bothIfAlts r =
-  serialise
-    [ pathR [caseAlt 0] r
-    , pathR [caseAlt 1] r
-    ]
-
 script :: Shell ()
 script = do
   mapM_ assumeRule
@@ -46,33 +23,51 @@ script = do
         , ">>=-left-id"
         , "commute-lit-not"
         , "lit-of-unLit"
-        , "If-intro/Action"
+
+        , "If-intro/>>case"
+        , "If-intro/case>>"
+        , "If-intro/return-case"
+        , "If-intro/Action-case"
+        , "If-intro/>>=case"
+        , "If-intro/case>>="
+        , "If-intro/Loop-case"
+        , "If-intro/If-2"
+        , "If-intro/If-3"
         ]
 
   setPath $ rhsOf "main"
 
-  apply . serialise $ map anyTD
-        [ lemmaForward "led-to-ledE"
-        , lemmaForward "lower-button"
+  -- *** Introduce ledE and buttonE ***
+  apply . repeat $ foldr1 (<+)
+    [ anyBU $ lemmaForward "led-to-ledE"
+    , serialise $ map anyBU
+        [ lemmaForward "lower-button"
         , lemmaForward ">>=-assoc"
         ]
+    , repeat . foldr1 (<+) $ map anyBU
+        [ lemmaForward "commute-lit-not"
 
-  apply . repeat . foldr1 (<+) $ map anyBU
-       [ lemmaForward "commute-lit-not"
+        , fullBetaReduce
+        , lemmaForward ">>=-left-id"
 
-       , fullBetaReduce
-       , lemmaForward ">>=-left-id"
+        , fullBetaReduce
+        , lemmaForward "lit-of-unLit"
+        ]
+    ]
 
-       , fullBetaReduce
-       , lemmaForward "lit-of-unLit"
-       ]
+  -- *** Transform ifs ***
+  apply . repeat $ foldr1 (<+)
+    [ anyBU inlineCaseAlternative -- Inline `wild`s
+    , anyBU $ lemmaForward "If-intro/case>>"
 
-  -- *** Handle `if`s ***
-  apply . focus (consider CaseOf) . serialise $
-    [ bothIfAlts (oneTD unfold)
-    -- Float `case` inside of `Action` constructor application
-    , anyBU caseFloatIn
-    , smash -- Inline `wild`s
-    , anyBU $ lemmaForward "If-intro/Action"
+    -- NOTE: Not tested:
+    , anyBU $ lemmaForward "If-intro/>>case"
+    , anyBU $ lemmaForward "If-intro/return-case"
+    , anyBU $ lemmaForward "If-intro/Action-case"
+    , anyBU $ lemmaForward "If-intro/>>=case"
+    , anyBU $ lemmaForward "If-intro/case>>="
+    , anyBU $ lemmaForward "If-intro/Loop-case"
+    , anyBU $ lemmaForward "If-intro/If-2"
+    , anyBU $ lemmaForward "If-intro/If-3"
     ]
 

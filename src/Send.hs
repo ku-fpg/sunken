@@ -65,8 +65,8 @@ sendR (Bind m f) = updateButtons >> sendR m >>= sendR . f
 sendR (Action a) = updateButtons >> runCommand a
 sendR (Loop m  ) = forever (updateButtons >> sendR m)
 sendR (If b t f)
-  | evalE b      = trace "Evaluating if on server..." $ sendR t
-  | otherwise    = trace "Evaluating if on server..." $ sendR f
+  | evalE b      = trace "Evaluating if on server..." $ updateButtons >> sendR t
+  | otherwise    = trace "Evaluating if on server..." $ updateButtons >> sendR f
 
 initUI :: Canvas ()
 initUI = do
