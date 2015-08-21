@@ -102,7 +102,7 @@ buttonR :: Int -> Remote Bool
 buttonR buttonNum = do
   updateButtons
   bs <- use buttons
-  return $ fromMaybe False $ bs ^? ix buttonNum
+  return . traceShowId $ fromMaybe (error ("Invalid button number: " ++ show buttonNum)) $ bs ^? ix buttonNum
 
 readButtonNum :: Key -> Maybe Int
 readButtonNum KeyH = Just 0
@@ -114,11 +114,22 @@ readButtonNum _    = Nothing
 
 updateButtons :: Remote ()
 updateButtons = do
-  event <- lift $ lift . Blank.wait =<< ask
-  case readButtonNum =<< keyCodeLookup <$> eWhich event of
-      Just buttonNum ->
-        buttons . ix buttonNum .= (eType event == "keydown")
-      _              -> return ()
+  context <- ask
+
+  events <- liftIO $ Blank.flush $ context
+
+  case events of
+    [] -> return ()
+    (event:_) -> do
+      let isKeydown = eType event == "keydown"
+
+      context <- ask
+      liftIO $ Blank.send context sync
+
+      case readButtonNum =<< keyCodeLookup <$> eWhich event of
+          Just buttonNum ->
+            buttons . ix buttonNum .= isKeydown
+          _              -> return ()
 
 ledR :: Int -> Bool -> Remote ()
 ledR ledNum ledState = do
