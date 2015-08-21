@@ -102,7 +102,7 @@ buttonR :: Int -> Remote Bool
 buttonR buttonNum = do
   updateButtons
   bs <- use buttons
-  return . traceShowId $ fromMaybe (error ("Invalid button number: " ++ show buttonNum)) $ bs ^? ix buttonNum
+  return $ fromMaybe (error ("Invalid button number: " ++ show buttonNum)) $ bs ^? ix buttonNum
 
 readButtonNum :: Key -> Maybe Int
 readButtonNum KeyH = Just 0
