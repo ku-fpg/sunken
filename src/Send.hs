@@ -24,9 +24,15 @@ import           Deep
 
 import           Debug.Trace
 
+data ButtonState
+  = Up
+  | Down
+  | Press
+  deriving (Eq)
+
 data ServerState
   = ServerState
-    { _buttons :: (Bool, Bool, Bool, Bool)
+    { _buttons :: (ButtonState, ButtonState, ButtonState, ButtonState)
     , _leds    :: (Bool, Bool, Bool, Bool)
     }
 
@@ -44,20 +50,20 @@ evalRemote :: E a -> Remote a
 evalRemote = sendR . Action . LitA
 
 send :: R () -> IO ()
-send r = blankCanvas (3000 { events = ["keyup", "keydown"] })
+send r = blankCanvas (3000 { events = ["keyup", "keypress", "keydown"] })
     $ \context -> do
   Blank.send context initUI
   runReaderT (evalStateT (sendR r) defaultServerState) context
   where
     defaultServerState
-      = ServerState (False, False, False, False) (False, False, False, False)
+      = ServerState (Up, Up, Up, Up) (False, False, False, False)
 
 
 sendR :: R a -> Remote a
 sendR (Return x) = return x
-sendR (Bind m f) = sendR m >>= sendR . f
-sendR (Action a) = runCommand a
-sendR (Loop m  ) = forever (sendR m)
+sendR (Bind m f) = updateButtons >> sendR m >>= sendR . f
+sendR (Action a) = updateButtons >> runCommand a
+sendR (Loop m  ) = forever (updateButtons >> sendR m)
 sendR (If b t f)
   | evalE b      = trace "Evaluating if on server..." $ sendR t
   | otherwise    = trace "Evaluating if on server..." $ sendR f
@@ -102,7 +108,10 @@ buttonR :: Int -> Remote Bool
 buttonR buttonNum = do
   updateButtons
   bs <- use buttons
-  return $ fromMaybe (error ("Invalid button number: " ++ show buttonNum)) $ bs ^? ix buttonNum
+  let buttonState
+        = fromMaybe (error ("Invalid button number: " ++ show buttonNum))
+            $ bs ^? ix buttonNum
+  return $ buttonState == Down
 
 readButtonNum :: Key -> Maybe Int
 readButtonNum KeyH = Just 0
@@ -117,19 +126,30 @@ updateButtons = do
   context <- ask
 
   events <- liftIO $ Blank.flush $ context
+  updatePresses
 
-  case events of
-    [] -> return ()
-    (event:_) -> do
-      let isKeydown = eType event == "keydown"
-
+  mapM_ updateWithEvent events
+  where
+    updateWithEvent :: Event -> Remote ()
+    updateWithEvent event = do
       context <- ask
       liftIO $ Blank.send context sync
 
       case readButtonNum =<< keyCodeLookup <$> eWhich event of
           Just buttonNum ->
-            buttons . ix buttonNum .= isKeydown
+            buttons . ix buttonNum .= interpretEvent (eType event)
           _              -> return ()
+
+    interpretEvent "keydown"  = Down
+    interpretEvent "keypress" = Press
+    interpretEvent "keyup"    = Up
+
+updatePresses :: Remote ()
+updatePresses = do
+  buttons . partsOf each %= map update
+  where
+    update Press = Down
+    update x     = x
 
 ledR :: Int -> Bool -> Remote ()
 ledR ledNum ledState = do
