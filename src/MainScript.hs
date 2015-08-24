@@ -31,6 +31,7 @@ script = do
         , "If-intro/>>=case"
         , "If-intro/case>>="
         , "If-intro/Loop-case"
+        , "If-intro/If-1"
         , "If-intro/If-2"
         , "If-intro/If-3"
         ]
@@ -67,6 +68,7 @@ script = do
     , anyBU $ lemmaForward "If-intro/>>=case"
     , anyBU $ lemmaForward "If-intro/case>>="
     , anyBU $ lemmaForward "If-intro/Loop-case"
+    , anyBU $ lemmaForward "If-intro/If-1"
     , anyBU $ lemmaForward "If-intro/If-2"
     , anyBU $ lemmaForward "If-intro/If-3"
     ]

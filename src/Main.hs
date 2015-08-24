@@ -100,7 +100,7 @@ unLit = undefined
       forall (m :: R a) r (t :: a -> R b) (f :: a -> R b).
         m >>= case unLit r of False -> f ; True -> t
           =
-        m >>= (\x -> If r (t x) (t x))
+        m >>= (\x -> If r (t x) (f x))
   #-}
 
 {-# RULES "If-intro/case>>=" [~]
@@ -115,6 +115,13 @@ unLit = undefined
         Loop (case unLit r of False -> f ; True -> t)
           =
         Loop (If r t f)
+  #-}
+
+{-# RULES "If-intro/If-1" [~]
+      forall r t1 t2 f1 f2.
+        If (case unLit r of False -> f1 ; True -> t1) t2 f2
+          =
+        If r (return t1) (return f1) >>= (\r2 -> If r2 t2 f2)
   #-}
 
 {-# RULES "If-intro/If-2" [~]
