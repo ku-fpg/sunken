@@ -11,8 +11,12 @@ shallow: clean $(srcs)
 	cd src ; \
 		ghc Main.hs -threaded -O2
 
+# XXX: Why is it necessary for this rule
+#      to compile all the .o files first and we can't
+#      just make clean instead?
 deep: clean $(srcs)
 	cd src ; \
+		ghc -fno-code -fobject-code Main.hs -threaded -O2 ; \
 		hermit-shell Main.hs +Main MainScript.hs resume -- -threaded
 
 exec: src/Main
