@@ -22,7 +22,7 @@ exec: src/Main
 		./Main
 
 src/Main:
-	@echo "Before running exec, you must run either 'make shallow' or 'make deep'"
+	@echo "Before running 'make exec', you must run either 'make shallow' or 'make deep'"
 	@echo
 	@exit 3
 
