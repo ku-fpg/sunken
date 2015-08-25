@@ -28,5 +28,5 @@ src/Main:
 
 clean:
 	cd src ; \
-	  ./clean.sh
+		rm -f *.o *.hi *.dyn_hi *.dyn_o Main
 
