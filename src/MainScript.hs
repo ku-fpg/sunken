@@ -38,13 +38,13 @@ script = do
   setPath $ rhsOf "main"
 
   -- *** Introduce ledE and buttonE ***
-  apply . repeat $ foldr1 (<+)
+  apply . repeat $ foldr1 (>+>)
     [ anyBU $ lemmaForward "led-to-ledE"
     , serialise $ map anyBU
         [ lemmaForward "lower-button"
         , lemmaForward ">>=-assoc"
         ]
-    , repeat . foldr1 (<+) $ map anyBU
+    , repeat . foldr1 (>+>) $ map anyBU
         [ lemmaForward "commute-lit-not"
 
         , fullBetaReduce
@@ -56,7 +56,7 @@ script = do
     ]
 
   -- *** Transform ifs ***
-  apply . repeat $ foldr1 (<+)
+  apply . repeat $ foldr1 (>+>)
     [ anyBU inlineCaseAlternative -- Inline `wild`s
     , anyBU $ lemmaForward "If-intro/case>>"
 
