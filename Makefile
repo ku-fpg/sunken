@@ -9,7 +9,7 @@ no_goal_given:
 
 shallow: clean $(srcs)
 	cd src ; \
-		ghc Main.hs -threaded
+		ghc Main.hs -threaded -O2
 
 deep: clean $(srcs)
 	cd src ; \

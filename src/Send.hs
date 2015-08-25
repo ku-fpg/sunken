@@ -22,8 +22,6 @@ import           Types
 import           Eval
 import           Deep
 
-import           Debug.Trace
-
 data ButtonState
   = Up
   | Down
@@ -66,12 +64,12 @@ sendR (Bind m f) = updateButtons >> sendR m >>= sendR . f
 sendR (Action a) = updateButtons >> runCommand a
 sendR (Loop m  ) = forever (updateButtons >> sendR m)
 sendR (If b t f)
-  | evalE b      =
-    trace "Evaluating if on server (true branch)..."
-      $ sendR t
-  | otherwise    =
-    trace "Evaluating if on server (false branch)..."
-      $ sendR f
+  | evalE b      = do
+    liftIO $ putStrLn "Evaluating if on server (true branch)..."
+    sendR t
+  | otherwise    = do
+    liftIO $ putStrLn "Evaluating if on server (false branch)..."
+    sendR f
 
 initUI :: Canvas ()
 initUI = do
