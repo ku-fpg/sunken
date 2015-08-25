@@ -2,7 +2,7 @@ srcs=src/Main.hs src/MainScript.hs src/Send.hs src/Types.hs src/Shallow.hs src/D
 
 no_goal_given:
 	@echo "Please choose one of the following targets:"
-	@echo -e "\tshallow, deep, execute"
+	@echo -e "\tshallow, deep, exec"
 	@echo "(Note: exec requires either deep or shallow to have been built first)"
 	@echo
 	@exit 2
