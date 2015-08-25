@@ -42,8 +42,9 @@ type Remote = StateT ServerState (ReaderT DeviceContext IO)
 
 runCommand :: Action a -> Remote a
 runCommand (Button i)        = LitB <$> buttonR i
-runCommand (Led i b@(Not _)) = trace "Evaluating on server..." $ ledR i (evalE b)
-runCommand (Led i b)         =                                   ledR i (evalE b)
+-- Tracing would go on this line:
+runCommand (Led i b@(Not _)) = ledR i (evalE b)
+runCommand (Led i b)         = ledR i (evalE b)
 runCommand (Wait ms )        = waitR ms
 
 evalRemote :: E a -> Remote a
@@ -65,8 +66,12 @@ sendR (Bind m f) = updateButtons >> sendR m >>= sendR . f
 sendR (Action a) = updateButtons >> runCommand a
 sendR (Loop m  ) = forever (updateButtons >> sendR m)
 sendR (If b t f)
-  | evalE b      = trace "Evaluating if on server..." $ updateButtons >> sendR t
-  | otherwise    = trace "Evaluating if on server..." $ updateButtons >> sendR f
+  | evalE b      = do
+    traceM "Evaluating if on server..."
+    sendR t
+  | otherwise    = do
+    traceM "Evaluating if on server..."
+    sendR f
 
 initUI :: Canvas ()
 initUI = do
