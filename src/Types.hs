@@ -8,6 +8,10 @@ data E a where
   LitB :: Bool -> E Bool
   LitI :: Int  -> E Int
   Not  :: E Bool -> E Bool
+  App  :: (a -> b) -> a -> E b  -- | Used to recognize the lit (f (unLit r)) pattern
+  -- Lam  :: E b -> E (a -> b)
+  -- Var  :: Int -> E a        -- | de Bruijn indices
+  -- Apply  :: E (a -> b) -> E a -> E b
 
 data Action a where
   Button :: Int -> Action (E Bool)

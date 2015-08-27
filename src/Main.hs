@@ -1,4 +1,3 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 module Main where
 import           Shallow
 import           Deep
@@ -6,6 +5,9 @@ import           Send
 import           Types
 
 import           GHC.Prim
+
+constTrue :: Bool -> Bool
+constTrue = const True
 
 main :: IO ()
 main = send $ do
@@ -16,7 +18,9 @@ main = send $ do
 
     if b
       then button 1 >>= led 2
-      else led 3 (not (not (not (not b))))  -- To make this more complex
+      else led 3 (not (not (not b)))  -- To make this more complex
+
+    -- led 2 (constTrue b)
 
     wait 100
 
@@ -136,5 +140,15 @@ unLit = undefined
         If r1 t1 (case unLit r2 of False -> f ; True -> t2)
           =
         If r1 t1 (If r2 f t2)
+  #-}
+
+-- Lambdas
+-- ((\x -> body) (unLit r))
+-- (let x = unLit r in body)
+{-# RULES "App-intro" [~]
+      forall f r.
+        lit (f (unLit r))
+          =
+        App f (unLit r)
   #-}
 

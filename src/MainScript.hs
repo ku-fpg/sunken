@@ -34,6 +34,7 @@ script = do
         , "If-intro/If-1"
         , "If-intro/If-2"
         , "If-intro/If-3"
+        , "App-intro"
         ]
 
   setPath $ rhsOf "main"
@@ -72,4 +73,9 @@ script = do
     , anyBU $ lemmaForward "If-intro/If-2"
     , anyBU $ lemmaForward "If-intro/If-3"
     ]
+
+  apply . try $ anyBU etaReduce -- Take care of some lambdas
+
+  -- -- Experimental:
+  -- apply . anyBU $ lemmaForward "App-intro"
 
