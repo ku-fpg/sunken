@@ -95,6 +95,8 @@ script = do
 
   apply . try $ anyBU etaReduce -- Take care of some lambdas
 
+  -- apply . anyBU $ lemmaForward "Lam-intro"
+
   apply elimGrabs
 
   -- apply deBruijn

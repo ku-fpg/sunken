@@ -138,18 +138,38 @@ grab _ = error "No grabs should be in the generated code"
 -- Lambdas
 --
 
-
-{-# RULES ">>=-subst" [~]
-      forall (m :: R a) (f :: a -> R b).
-        m >>= f
+{-# RULES "MaxBV-intro" [~]
+      forall program.
+        send program
           =
-        m >> Lam (f (unLit (Var 0)))
+        send (MaxBV 0 program)
   #-}
 
-{-# RULES "de-bruijn-succ" [~]
-      forall i.
-        unLit (Var i)
+{-# RULES "succ-MaxBV" [~]
+      forall i program.
+        send (MaxBV i program)
           =
-        unLit (Var (succ i))
+        send (MaxBV (succ i) program)
   #-}
+
+{-# RULES "Lam-intro" [~]
+      forall f.
+        grab f
+          =
+        App (Lam f)
+  #-}
+
+-- {-# RULES ">>=-subst" [~]
+--       forall (m :: R a) (f :: a -> R b).
+--         m >>= f
+--           =
+--         m >> Lam (f (unLit (Var 0)))
+--   #-}
+
+-- {-# RULES "de-bruijn-succ" [~]
+--       forall i.
+--         unLit (Var i)
+--           =
+--         unLit (Var (succ i))
+--   #-}
 
