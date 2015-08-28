@@ -15,11 +15,11 @@ fullBetaReduce :: Rewrite LCore
 fullBetaReduce = betaReduce >>> letSubst
 
 -- Experimental de Bruijn transformation (WIP)
--- TODO: Find a way to increment binder names when appropriate.
+-- TODO: Find a better/more correct way to increment the de Bruijn indices.
 deBruijn :: Rewrite LCore
 deBruijn =
   serialise
-    [ anyBU $ lemmaForward ">>=-subst"
+    [ anyBU $ lemmaForward ">>=-subst" >>> try (anyBU $ lemmaForward "de-bruijn-succ")
     , anyBU $ fullBetaReduce
     ]
 
@@ -47,6 +47,7 @@ script = do
 
         -- Lambdas
         , ">>=-subst"
+        , "de-bruijn-succ"
         ]
 
   setPath $ rhsOf "main"

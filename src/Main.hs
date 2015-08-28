@@ -154,3 +154,10 @@ unLit = undefined
         m >> Lam (f (unLit (Var 0)))
   #-}
 
+{-# RULES "de-bruijn-succ" [~]
+      forall i.
+        unLit (Var i)
+          =
+        unLit (Var (succ i))
+  #-}
+
