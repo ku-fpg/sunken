@@ -16,6 +16,7 @@ fullBetaReduce = betaReduce >>> letSubst
 
 script :: Shell ()
 script = do
+  apply flattenModule
   mapM_ assumeRule
         [ "led-to-ledE"
         , "lower-button"
