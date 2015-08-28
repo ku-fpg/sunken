@@ -5,10 +5,12 @@ module Types where
 import           Control.Monad
 
 data E a where
-  LitB :: Bool -> E Bool
-  LitI :: Int  -> E Int
-  Not  :: E Bool -> E Bool
-  Var  :: Int -> E a
+  LitB :: Bool              -> E Bool
+  LitI :: Int               -> E Int
+  Not  :: E Bool            -> E Bool
+  Lam  :: (E a -> E b)      -> E (a -> b)
+  App  :: E (a -> b) -> E a -> E b
+  Var  :: Int               -> E a
 
 data Action a where
   Button :: Int -> Action (E Bool)
@@ -22,7 +24,9 @@ data R a where
   Return :: a -> R a
   Loop   :: R () -> R ()
   If     :: E Bool -> R a -> R a -> R a
-  Lam    :: R a -> R a
+  -- Lam    :: R a -> R a
+  MaxBV  :: Int -> R a -> R a   -- | Used at the top level in main to keep
+                                --   track of the maximum de Bruijn index.
 
 -- {-# NOINLINE Action #-}   -- XXX: How do we do this?
 

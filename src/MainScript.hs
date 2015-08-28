@@ -23,6 +23,21 @@ deBruijn =
     , anyBU $ fullBetaReduce
     ]
 
+grabSomething :: Rewrite LCore
+grabSomething =
+  foldr1 (<+)
+  [ lemmaForward "grab-intro/>>"
+  , lemmaForward "grab-intro/>>="
+  , lemmaForward "grab-intro/return"
+  , lemmaForward "grab-intro/Action"
+  , lemmaForward "grab-intro/Loop"
+  , lemmaForward "grab-intro/If"
+  ]
+
+elimGrabs :: Rewrite LCore
+elimGrabs =
+  anyBU $ lemmaForward "grab-elim"
+
 script :: Shell ()
 script = do
   apply flattenModule
@@ -34,20 +49,20 @@ script = do
         , "commute-lit-not"
         , "lit-of-unLit"
 
-        , "If-intro/>>case"
-        , "If-intro/case>>"
-        , "If-intro/return-case"
-        , "If-intro/Action-case"
-        , "If-intro/>>=case"
-        , "If-intro/case>>="
-        , "If-intro/Loop-case"
-        , "If-intro/If-1"
-        , "If-intro/If-2"
-        , "If-intro/If-3"
+        , "grab-elim"
+        , "grab-intro/>>"
+        , "grab-intro/>>="
+        , "grab-intro/return"
+        , "grab-intro/Action"
+        , "grab-intro/Loop"
+        , "grab-intro/If"
+
+        , "If-intro"
 
         -- Lambdas
-        , ">>=-subst"
-        , "de-bruijn-succ"
+        , "Lam-intro"
+        -- , ">>=-subst"
+        -- , "de-bruijn-succ"
         ]
 
   setPath $ rhsOf "main"
@@ -71,23 +86,17 @@ script = do
     ]
 
   -- *** Transform ifs ***
+  apply . anyBU $ grabSomething
+
   apply . repeat $ foldr1 (>+>)
     [ anyBU inlineCaseAlternative -- Inline `wild`s
-    , anyBU $ lemmaForward "If-intro/case>>"
-
-    -- NOTE: Not tested:
-    , anyBU $ lemmaForward "If-intro/>>case"
-    , anyBU $ lemmaForward "If-intro/return-case"
-    , anyBU $ lemmaForward "If-intro/Action-case"
-    , anyBU $ lemmaForward "If-intro/>>=case"
-    , anyBU $ lemmaForward "If-intro/case>>="
-    , anyBU $ lemmaForward "If-intro/Loop-case"
-    , anyBU $ lemmaForward "If-intro/If-1"
-    , anyBU $ lemmaForward "If-intro/If-2"
-    , anyBU $ lemmaForward "If-intro/If-3"
+    , anyBU $ lemmaForward "If-intro"
     ]
 
   apply . try $ anyBU etaReduce -- Take care of some lambdas
 
+  apply elimGrabs
+
   -- apply deBruijn
+  -- apply $ anyBU $ lemmaBackward "Lam-intro"
 
