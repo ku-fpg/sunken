@@ -14,6 +14,15 @@ assumeRule ruleName = do
 fullBetaReduce :: Rewrite LCore
 fullBetaReduce = betaReduce >>> letSubst
 
+-- Experimental de Bruijn transformation (WIP)
+-- TODO: Find a way to increment binder names when appropriate.
+deBruijn :: Rewrite LCore
+deBruijn =
+  serialise
+    [ anyBU $ lemmaForward ">>=-subst"
+    , anyBU $ fullBetaReduce
+    ]
+
 script :: Shell ()
 script = do
   apply flattenModule
@@ -35,7 +44,9 @@ script = do
         , "If-intro/If-1"
         , "If-intro/If-2"
         , "If-intro/If-3"
-        , "App-intro"
+
+        -- Lambdas
+        , ">>=-subst"
         ]
 
   setPath $ rhsOf "main"
@@ -77,6 +88,5 @@ script = do
 
   apply . try $ anyBU etaReduce -- Take care of some lambdas
 
-  -- -- Experimental:
-  -- apply . anyBU $ lemmaForward "App-intro"
+  -- apply deBruijn
 

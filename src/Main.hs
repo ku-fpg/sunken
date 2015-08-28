@@ -24,7 +24,8 @@ main = send $ do
 
     wait 100
 
-unLit :: E Bool -> Bool
+-- unLit :: E Bool -> Bool
+unLit :: E a -> a
 unLit = undefined
 {-# NOINLINE unLit #-}
 -- {-# WARNING unLit "*** unLit should *not* appear in final generated code! ***" #-}
@@ -142,13 +143,14 @@ unLit = undefined
         If r1 t1 (If r2 f t2)
   #-}
 
+--
 -- Lambdas
--- ((\x -> body) (unLit r))
--- (let x = unLit r in body)
-{-# RULES "App-intro" [~]
-      forall f r.
-        lit (f (unLit r))
+--
+
+{-# RULES ">>=-subst" [~]
+      forall (m :: R a) (f :: a -> R b).
+        m >>= f
           =
-        App f (unLit r)
+        m >> Lam (f (unLit (Var 0)))
   #-}
 
