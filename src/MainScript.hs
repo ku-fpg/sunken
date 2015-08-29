@@ -63,13 +63,11 @@ script = do
         , "succ-MaxBV"
         , "Lam-intro"
         , "succ-Lam-BV"
-        -- , ">>=-subst"
-        -- , "de-bruijn-succ"
         ]
 
   setPath $ rhsOf "main"
 
-  -- *** Introduce ledE and buttonE ***
+    -- *** Introduce ledE and buttonE ***
   apply . repeat $ foldr1 (>+>)
     [ anyBU $ lemmaForward "led-to-ledE"
     , serialise $ map anyBU
@@ -87,7 +85,7 @@ script = do
         ]
     ]
 
-  -- *** Transform ifs ***
+    -- *** Transform ifs ***
   apply . anyBU $ grabSomething
 
   apply . repeat $ foldr1 (>+>)
@@ -97,16 +95,20 @@ script = do
 
   apply . try $ anyBU etaReduce -- Take care of some lambdas
 
+  -- TODO: Test this out
+    -- *** de Bruijn transformation ***
   -- apply . try $ unfoldWith "$"   -- It's common to use "send $ ..." so we eliminate the $
   -- apply $ lemmaForward "MaxBV-intro"
 
   -- apply . oneTD $ lemmaForward "Lam-intro"
-  -- apply $ oneTD fullBetaReduce
 
     -- TODO: See if this correctly increments the value in MaxBV
-  -- apply . repeat $ lemmaForward "succ-MaxBV" >>> anyTD (lemmaForward "Lam-intro" >>> focus (rhsOf "main") (oneTD (lemmaForward "succ-Lam-BV")) >>> oneTD fullBetaReduce)
+  -- kernelEffect top
+  -- setPath $ rhsOf "main"
+  -- apply . repeat $ lemmaForward "succ-MaxBV" >>> anyTD (lemmaForward "succ-Lam-BV") >>> anyTD (lemmaForward "Lam-intro")
 
+  -- apply $ anyBU fullBetaReduce
+
+    -- *** Clean up ***
   apply elimGrabs
-
-  -- apply deBruijn
 
