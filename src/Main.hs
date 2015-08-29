@@ -5,6 +5,7 @@ import           Send
 import           Types
 
 import           GHC.Prim
+import           Data.Proxy
 
 constTrue :: Bool -> Bool
 constTrue = const True
@@ -153,10 +154,17 @@ grab _ = error "No grabs should be in the generated code"
   #-}
 
 {-# RULES "Lam-intro" [~]
-      forall f.
+      forall (f :: E a -> R b).
         grab f
           =
-        App (Lam f)
+        App (Lam Proxy 0 (f (Var 0)))
+  #-}
+
+{-# RULES "succ-Lam-BV" [~]
+      forall i (f :: E a -> R b).
+        App (Lam Proxy i (f (Var i)))
+          =
+        App (Lam Proxy (succ i) (f (Var (succ i))))
   #-}
 
 -- {-# RULES ">>=-subst" [~]

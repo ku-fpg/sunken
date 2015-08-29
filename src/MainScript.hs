@@ -19,20 +19,19 @@ fullBetaReduce = betaReduce >>> letSubst
 deBruijn :: Rewrite LCore
 deBruijn =
   serialise
-    [ anyBU $ lemmaForward ">>=-subst" >>> try (anyBU $ lemmaForward "de-bruijn-succ")
-    , anyBU $ fullBetaReduce
+    [ 
     ]
 
 grabSomething :: Rewrite LCore
 grabSomething =
   foldr1 (<+)
-  [ lemmaForward "grab-intro/>>"
-  , lemmaForward "grab-intro/>>="
-  , lemmaForward "grab-intro/return"
-  , lemmaForward "grab-intro/Action"
-  , lemmaForward "grab-intro/Loop"
-  , lemmaForward "grab-intro/If"
-  ]
+    [ lemmaForward "grab-intro/>>"
+    , lemmaForward "grab-intro/>>="
+    , lemmaForward "grab-intro/return"
+    , lemmaForward "grab-intro/Action"
+    , lemmaForward "grab-intro/Loop"
+    , lemmaForward "grab-intro/If"
+    ]
 
 elimGrabs :: Rewrite LCore
 elimGrabs =
@@ -60,7 +59,10 @@ script = do
         , "If-intro"
 
         -- Lambdas
+        , "MaxBV-intro"
+        , "succ-MaxBV"
         , "Lam-intro"
+        , "succ-Lam-BV"
         -- , ">>=-subst"
         -- , "de-bruijn-succ"
         ]
@@ -95,10 +97,16 @@ script = do
 
   apply . try $ anyBU etaReduce -- Take care of some lambdas
 
-  -- apply . anyBU $ lemmaForward "Lam-intro"
+  -- apply . try $ unfoldWith "$"   -- It's common to use "send $ ..." so we eliminate the $
+  -- apply $ lemmaForward "MaxBV-intro"
+
+  -- apply . oneTD $ lemmaForward "Lam-intro"
+  -- apply $ oneTD fullBetaReduce
+
+    -- TODO: See if this correctly increments the value in MaxBV
+  -- apply . repeat $ lemmaForward "succ-MaxBV" >>> anyTD (lemmaForward "Lam-intro" >>> focus (rhsOf "main") (oneTD (lemmaForward "succ-Lam-BV")) >>> oneTD fullBetaReduce)
 
   apply elimGrabs
 
   -- apply deBruijn
-  -- apply $ anyBU $ lemmaBackward "Lam-intro"
 
