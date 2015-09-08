@@ -50,17 +50,6 @@ script = do
         , "commute-lit-not"
         , "lit-of-unLit"
 
-<<<<<<< Updated upstream
-        , "If-intro/>>case"
-        , "If-intro/case>>"
-        , "If-intro/return-case"
-        , "If-intro/Action-case"
-        , "If-intro/>>=case"
-        , "If-intro/case>>="
-        , "If-intro/Loop-case"
-        , "If-intro/If-2"
-        , "If-intro/If-3"
-=======
         , "grab-elim"
         , "grab-intro/>>"
         , "grab-intro/>>="
@@ -76,18 +65,12 @@ script = do
         , "succ-MaxBV"
         , "Lam-intro"
         , "succ-Lam-BV"
->>>>>>> Stashed changes
         ]
 
   setPath $ rhsOf "main"
 
-<<<<<<< Updated upstream
-  -- *** Introduce ledE and buttonE ***
-  apply . repeat $ foldr1 (<+)
-=======
     -- *** Introduce ledE and buttonE ***
   apply . repeat $ foldr1 (>+>)
->>>>>>> Stashed changes
     [ anyBU $ lemmaForward "led-to-ledE"
     , serialise $ map anyBU
         [ lemmaForward "lower-button"
@@ -104,15 +87,10 @@ script = do
         ]
     ]
 
-<<<<<<< Updated upstream
-  -- *** Transform ifs ***
-  apply . repeat $ foldr1 (<+)
-=======
     -- *** Transform ifs ***
   apply . anyBU $ grabSomething
 
   apply . repeat $ foldr1 (>+>)
->>>>>>> Stashed changes
     [ anyBU inlineCaseAlternative -- Inline `wild`s
     , anyBU $ lemmaForward "If-intro/case>>"
 
@@ -127,8 +105,6 @@ script = do
     , anyBU $ lemmaForward "If-intro/If-3"
     ]
 
-<<<<<<< Updated upstream
-=======
   apply . try $ anyBU etaReduce -- Take care of some lambdas
 
   -- TODO: Test this out
@@ -148,4 +124,3 @@ script = do
     -- *** Clean up ***
   apply elimGrabs
 
->>>>>>> Stashed changes

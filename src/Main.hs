@@ -125,13 +125,6 @@ unLit = undefined
         If r1 (If r2 t f1) f2
   #-}
 
-<<<<<<< Updated upstream
-{-# RULES "If-intro/If-3" [~]
-      forall r1 r2 t1 f t2.
-        If r1 t1 (case unLit r2 of False -> f ; True -> t2)
-          =
-        If r1 t1 (If r2 f t2)
-=======
 {-# RULES "Lam-intro" [~]
       forall (f :: E a -> R b).
         grab f
@@ -144,6 +137,5 @@ unLit = undefined
         App (Lam Proxy i (f (Var i)))
           =
         App (Lam Proxy (succ i) (f (Var (succ i))))
->>>>>>> Stashed changes
   #-}
 
