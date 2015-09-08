@@ -6,6 +6,7 @@ import           Send
 import           Types
 
 import           GHC.Prim
+import           Data.Proxy
 
 main :: IO ()
 main = send $ do
@@ -124,10 +125,25 @@ unLit = undefined
         If r1 (If r2 t f1) f2
   #-}
 
+<<<<<<< Updated upstream
 {-# RULES "If-intro/If-3" [~]
       forall r1 r2 t1 f t2.
         If r1 t1 (case unLit r2 of False -> f ; True -> t2)
           =
         If r1 t1 (If r2 f t2)
+=======
+{-# RULES "Lam-intro" [~]
+      forall (f :: E a -> R b).
+        grab f
+          =
+        App (Lam Proxy 0 (f (Var 0)))
+  #-}
+
+{-# RULES "succ-Lam-BV" [~]
+      forall i (f :: E a -> R b).
+        App (Lam Proxy i (f (Var i)))
+          =
+        App (Lam Proxy (succ i) (f (Var (succ i))))
+>>>>>>> Stashed changes
   #-}
 
