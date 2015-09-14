@@ -1,4 +1,3 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 module Main where
 import           Shallow
 import           Deep
@@ -6,7 +5,9 @@ import           Send
 import           Types
 
 import           GHC.Prim
-import           Data.Proxy
+
+constTrue :: Bool -> Bool
+constTrue = const True
 
 main :: IO ()
 main = send $ do
@@ -17,14 +18,27 @@ main = send $ do
 
     if b
       then button 1 >>= led 2
-      else led 3 (not (not (not (not b))))  -- To make this more complex
+      else led 3 (not (not (not b)))  -- To make this more complex
+
+    -- led 2 (constTrue b)
 
     wait 100
 
-unLit :: E Bool -> Bool
+-- unLit :: E Bool -> Bool
+unLit :: E a -> a
 unLit = undefined
 {-# NOINLINE unLit #-}
 -- {-# WARNING unLit "*** unLit should *not* appear in final generated code! ***" #-}
+
+
+  -- | Used for convenience so we don't have to
+  --   spell out each case every time.
+  --   Introduced at the beginning by the HERMIT
+  --   shell script and then eliminated at the end.
+  --   TODO: See if there's a better way.
+grab :: a -> a
+grab _ = error "No grabs should be in the generated code"
+{-# NOINLINE grab #-}
 
 {-# RULES "led-to-ledE" [~]
       forall n i.
@@ -66,76 +80,68 @@ unLit = undefined
         notE (lit b)
   #-}
 
-{-# RULES "If-intro/>>case" [~]
-      forall r f t (m :: R a).
-        m >> case unLit r of False -> f ; True -> t
-          =
-        m >> If r t f
+{-# RULES "grab-elim" [~]
+      forall x.
+        grab x = x
   #-}
 
-
-{-# RULES "If-intro/case>>" [~]
-      forall r f t (m :: R a).
-        (case unLit r of False -> f ; True -> t) >> m
+{-# RULES "grab-intro/>>" [~]
+      forall (x :: R a) (y :: R b).
+        x >> y
           =
-        If r t f >> m
+        grab x >> grab y
   #-}
 
--- NOTE: These are untested:
-{-# RULES "If-intro/return-case" [~]
-      forall r f t.
-        return (case unLit r of False -> f ; True -> t)
+{-# RULES "grab-intro/>>=" [~]
+      forall (m :: R a) (f :: a -> R b).
+        m >>= f
           =
-        return (If r t f)
+        grab m >>= grab f
   #-}
 
-{-# RULES "If-intro/Action-case" [~]
-      forall r t f.
-        Action (case unLit r of False -> f ; True -> t)
+{-# RULES "grab-intro/return" [~]
+      forall x.
+        return x
           =
-        If r (Action t) (Action f)
+        return (grab x)
   #-}
 
-  -- XXX: Is it ok to introduce a lambda here?
-{-# RULES "If-intro/>>=case" [~]
-      forall (m :: R a) r (t :: a -> R b) (f :: a -> R b).
-        m >>= case unLit r of False -> f ; True -> t
+{-# RULES "grab-intro/Action" [~]
+      forall a.
+        Action a
           =
-        m >>= (\x -> If r (t x) (t x))
+        Action (grab a)
   #-}
 
-{-# RULES "If-intro/case>>=" [~]
-      forall r t f mf.
-        (case unLit r of False -> f ; True -> t) >>= mf
+{-# RULES "grab-intro/Loop" [~]
+      forall x.
+        Loop x
           =
-        (If r t f) >>= mf
+        Loop (grab x)
   #-}
 
-{-# RULES "If-intro/Loop-case" [~]
-      forall r t f.
-        Loop (case unLit r of False -> f ; True -> t)
+{-# RULES "grab-intro/If" [~]
+      forall c t f.
+        If c t f
           =
-        Loop (If r t f)
+        If c (grab t) (grab f)
   #-}
 
-{-# RULES "If-intro/If-2" [~]
-      forall r1 r2 t f1 f2.
-        If r1 (case unLit r2 of False -> f1 ; True -> t) f2
+{-# RULES "If-intro" [~]
+      forall r (t :: R a) (f :: R a).
+        grab (case unLit r of True -> t ; False -> f)
           =
-        If r1 (If r2 t f1) f2
+        grab (If r t f)
   #-}
+
+--
+-- Lambdas
+--
 
 {-# RULES "Lam-intro" [~]
-      forall (f :: E a -> R b).
+      forall f.
         grab f
           =
-        App (Lam Proxy 0 (f (Var 0)))
-  #-}
-
-{-# RULES "succ-Lam-BV" [~]
-      forall i (f :: E a -> R b).
-        App (Lam Proxy i (f (Var i)))
-          =
-        App (Lam Proxy (succ i) (f (Var (succ i))))
+        App (Lam f)
   #-}
 

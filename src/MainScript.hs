@@ -14,14 +14,12 @@ assumeRule ruleName = do
 fullBetaReduce :: Rewrite LCore
 fullBetaReduce = betaReduce >>> letSubst
 
-<<<<<<< Updated upstream
-=======
 -- Experimental de Bruijn transformation (WIP)
 -- TODO: Find a better/more correct way to increment the de Bruijn indices.
 deBruijn :: Rewrite LCore
 deBruijn =
   serialise
-    [ 
+    [
     ]
 
 grabSomething :: Rewrite LCore
@@ -39,7 +37,6 @@ elimGrabs :: Rewrite LCore
 elimGrabs =
   anyBU $ lemmaForward "grab-elim"
 
->>>>>>> Stashed changes
 script :: Shell ()
 script = do
   mapM_ assumeRule
