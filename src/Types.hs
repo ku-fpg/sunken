@@ -1,23 +1,15 @@
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Types where
 
 import           Control.Monad
 import           Data.Proxy
 
--- Some lightweight singletons
-data family Sing :: * -> *
-data instance Sing Bool     = SBool
-data instance Sing Int      = SInt
-data instance Sing (a -> b) = Sing a :-> Sing b
+import           Control.Monad.State.Strict
 
--- Simple dependent sums (look into connection with natural transformations)
-data tag ** f = forall a. !(tag a) :=> f a
-
-type Unique = Int
+data Unique
+  = Unique !Int
+  | UniquePlaceholder -- | This is to be filled in with a 'Unique' later.
 
 data E a where
   LitB :: Bool   -> E Bool
@@ -31,25 +23,29 @@ data Action a where
   Wait   :: Int           -> Action ()
   LitA   :: E a           -> Action a
 
-data R a where
-  Action :: Action a             -> R a
-  Bind   :: R a -> (a -> R b) -> R b
-  Return :: a                    -> R a
-  Loop   :: R ()                 -> R ()
-  If     :: E Bool -> R a -> R a -> R a
-  App    :: R (a -> b) -> E a -> R b
-  Lam    :: Proxy a -> Unique -> R b -> R (a -> b)
+data R' a where
+  Action :: Action a                  -> R' a
+  Bind   :: R' a -> (a -> R' b)       -> R' b
+  Return :: a                         -> R' a
+  Loop   :: R' ()                     -> R' ()
+  If     :: E Bool -> R' a -> R' a    -> R' a
+  App    :: R' (a -> b) -> E a        -> R' b
+  Lam    :: Proxy a -> Unique -> R' b -> R' (a -> b)
+
+type R = StateT UniqueSupply R'
+
+type UniqueSupply = Int
 
 -- {-# NOINLINE Action #-}   -- XXX: How do we get rid of this warning?
 
-instance Functor R where
+instance Functor R' where
   fmap = liftM
 
-instance Applicative R where
+instance Applicative R' where
   pure  = return
   (<*>) = ap
 
-instance Monad R where
+instance Monad R' where
   return = Return
   (>>=)  = Bind
   a >> b = a >>= const b  -- XXX: Why is this needed to avoid a core lint warning?

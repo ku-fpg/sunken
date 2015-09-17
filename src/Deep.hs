@@ -4,11 +4,14 @@ module Deep
 
 import           Types
 
+import           Control.Monad.Trans
+import           Control.Monad.State.Strict
+
 buttonE :: Int -> R (E Bool)
-buttonE = Action . Button
+buttonE = lift . Action . Button
 
 ledE :: Int -> E Bool -> R ()
-ledE ledNum = Action . Led ledNum
+ledE ledNum = lift . Action . Led ledNum
 
 notE :: E Bool -> E Bool
 notE = Not
@@ -17,5 +20,7 @@ lit :: Bool -> E Bool
 lit = LitB
 
 loop :: R () -> R ()
-loop = Loop
+loop r = do
+  n <- get
+  lift . Loop $ evalStateT r n
 

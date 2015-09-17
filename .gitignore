@@ -5,3 +5,4 @@ Main
 *.dyn_hi
 .*.swp
 */dist
+tags

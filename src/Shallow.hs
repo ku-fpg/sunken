@@ -12,6 +12,8 @@ import           Types
 import           Deep
 import           Eval
 
+import           Control.Monad.Trans
+
 button :: Int -> R Bool
 button = fmap evalE . buttonE  -- Evaluate locally, for the shallow API
 {-# NOINLINE button #-}
@@ -21,6 +23,6 @@ led ledNum = ledE ledNum . LitB
 {-# NOINLINE led #-}
 
 wait :: Int -> R ()
-wait = Action . Wait
+wait = lift . Action . Wait
 {-# NOINLINE wait #-}
 

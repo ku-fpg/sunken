@@ -47,7 +47,7 @@ runCommand (Led i b)         =                                   ledR i (evalE b
 runCommand (Wait ms )        = waitR ms
 
 evalRemote :: E a -> Remote a
-evalRemote = sendR . Action . LitA
+evalRemote = sendR . lift . Action . LitA
 
 send :: R () -> IO ()
 send r = blankCanvas (3000 { events = ["keyup", "keypress", "keydown"] })
@@ -58,15 +58,17 @@ send r = blankCanvas (3000 { events = ["keyup", "keypress", "keydown"] })
     defaultServerState
       = ServerState (Up, Up, Up, Up) (False, False, False, False)
 
-
 sendR :: R a -> Remote a
-sendR (Return x) = return x
-sendR (Bind m f) = updateButtons >> sendR m >>= sendR . f
-sendR (Action a) = updateButtons >> runCommand a
-sendR (Loop m  ) = forever (updateButtons >> sendR m)
-sendR (If b t f)
-  | evalE b      = trace "Evaluating if on server..." $ updateButtons >> sendR t
-  | otherwise    = trace "Evaluating if on server..." $ updateButtons >> sendR f
+sendR ra = sendR' $ evalStateT ra 0
+
+sendR' :: R' a -> Remote a
+sendR' (Return x) = return x
+sendR' (Bind m f) = updateButtons >> sendR' m >>= sendR' . f
+sendR' (Action a) = updateButtons >> runCommand a
+sendR' (Loop m  ) = forever (updateButtons >> sendR' m)
+sendR' (If b t f)
+  | evalE b      = trace "Evaluating if on server..." $ updateButtons >> sendR' t
+  | otherwise    = trace "Evaluating if on server..." $ updateButtons >> sendR' f
 
 initUI :: Canvas ()
 initUI = do

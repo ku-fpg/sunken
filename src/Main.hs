@@ -6,6 +6,11 @@ import           Types
 
 import           GHC.Prim
 
+import           Data.Proxy
+
+import           Control.Monad.Trans
+import           Control.Monad.State.Strict
+
 constTrue :: Bool -> Bool
 constTrue = const True
 
@@ -127,11 +132,17 @@ grab _ = error "No grabs should be in the generated code"
         If c (grab t) (grab f)
   #-}
 
+  -- TODO: Make sure this definition makes sense:
+doState :: Monad m => StateT s m a -> StateT s m (m a)
+doState s = do
+  a <- get
+  lift . return $ evalStateT s a
+
 {-# RULES "If-intro" [~]
       forall r (t :: R a) (f :: R a).
         grab (case unLit r of True -> t ; False -> f)
           =
-        grab (If r t f)
+        grab (do { t' <- doState t; f' <- doState f; lift (If r t' f') })
   #-}
 
 --
@@ -142,6 +153,6 @@ grab _ = error "No grabs should be in the generated code"
       forall f.
         grab f
           =
-        App (Lam f)
+        App (Lam Proxy UniquePlaceholder (f (Var UniquePlaceholder)))
   #-}
 
