@@ -149,10 +149,19 @@ doState s = do
 -- Lambdas
 --
 
+fnIntro :: Proxy a -> b -> (a -> b)
+fnIntro = error "No fnIntros should exist in the generated code"
+
+unR' :: R' a -> a
+unR' = error "No unR's should exist in the generated code"
+
 {-# RULES "Lam-intro" [~]
-      forall f.
+      forall (f :: E a -> R b).
         grab f
           =
-        App (Lam Proxy UniquePlaceholder (f (Var UniquePlaceholder)))
+        fnIntro Proxy $ fmap unR' $
+          do { u <- newUnique
+             ; return $ Lam Proxy u (f (Var u))
+             }
   #-}
 

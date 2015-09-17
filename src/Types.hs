@@ -30,11 +30,17 @@ data R' a where
   Loop   :: R' ()                     -> R' ()
   If     :: E Bool -> R' a -> R' a    -> R' a
   App    :: R' (a -> b) -> E a        -> R' b
-  Lam    :: Proxy a -> Unique -> R' b -> R' (a -> b)
+  Lam    :: Proxy a -> Unique -> R b  -> R' b -- XXX: Should this be R' (a -> b)?
 
 type R = StateT UniqueSupply R'
 
 type UniqueSupply = Int
+
+newUnique :: R Unique
+newUnique = do
+  u <- Unique <$> get
+  modify (+1)
+  return u
 
 -- {-# NOINLINE Action #-}   -- XXX: How do we get rid of this warning?
 
