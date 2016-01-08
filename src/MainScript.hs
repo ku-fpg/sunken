@@ -96,8 +96,13 @@ script = do
   apply . try $ anyBU etaReduce -- Take care of some lambdas
 
   -- TODO: Test this out
-    -- *** de Bruijn transformation ***
-  -- apply . try $ unfoldWith "$"   -- It's common to use "send $ ..." so we eliminate the $
+
+    -- *** Lambda transformation ***
+
+  -- Get rid of $s
+  apply . try . anyBU $ unfoldWith "$"
+  apply . try . anyBU $ fullBetaReduce
+
   -- apply $ lemmaForward "MaxBV-intro"
 
   -- apply . oneTD $ lemmaForward "Lam-intro"
