@@ -6,6 +6,6 @@ module Eval
 import           Types
 
 evalE :: E a -> a
-evalE (LitB b) = b
-evalE (Not  b) = not (evalE b)
+evalE (Add a b) = evalE a + evalE b
+evalE (Lit a)   = a
 

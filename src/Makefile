@@ -1,4 +1,4 @@
-srcs=Main.hs MainScript.hs Send.hs Types.hs Shallow.hs Deep.hs
+srcs=Main.hs MainScript.hs Types.hs Shallow.hs Deep.hs
 HERMIT_SHELL=hermit-shell Main.hs +Main MainScript.hs
 GHC_ARGS=-threaded
 
