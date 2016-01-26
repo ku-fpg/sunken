@@ -37,17 +37,40 @@ grab = error "grab: No grabs should be in generated code"
 
 {-# RULES "App-Lam-intro" [~]
       forall f (x :: E a).
-        grab (f x)
+        grab f (grab x)
           =
-        App (Lam (f (Var 0))) x
+        App (Lam 0 (f (Var 0))) x
   #-}
 
--- {-# RULES "grab-intro/evalE"
---       forall x.
---         evalE x
---           =
---         evalE (grab x)
---   #-}
+{-# RULES "Var-succ" [~]
+      forall n.
+        Var n
+          =
+        Var (succ n)
+  #-}
+
+{-# RULES "Lam-succ" [~]
+      forall n x.
+        Lam n x
+          =
+        Lam (succ n) x
+  #-}
+
+{-# RULES "grab-intro/evalE"
+      forall x.
+        evalE x
+          =
+        evalE (grab x)
+  #-}
+
+-- This is a restricted form of grab-intro/fn-call
+{-# RULES "grab-intro/app-to-lit"
+      forall f x.
+        grab (f (lit x))
+          =
+        (grab f) (grab (lit x))
+  #-}
+
 
 -- TODO: See if this is possible:
 -- {-# RULES "grab-intro/fn-call" [~]
@@ -70,11 +93,4 @@ grab = error "grab: No grabs should be in generated code"
           =
         id (lit x)
   #-}
-
--- {-# RULES "Lam-intro" [~]
---       forall x.
---       Lam x
---         =
---       (\z -> x)
---   #-}
 

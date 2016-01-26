@@ -32,7 +32,11 @@ script = do
     [ "grab-intro/add"
     , "grab->id"
     , "commute-lit-grab"
-    -- , "App-Lam-intro"   NOTE: (doesn't work right now. See hermit issue #169)
+    , "grab-intro/evalE"
+    , "App-Lam-intro"
+    , "Var-succ"
+    , "Lam-succ"
+    , "grab-intro/app-to-lit"
     , "add-to-addE"
     , "commute-lit-id"
     ]
@@ -43,6 +47,9 @@ script = do
 
   -- Get rid of $s
   apply . repeat $ anyBU (fullBetaReduce <+ unfoldWith "$")
+  apply . oneTD $ unfoldWith "."
+
+  apply . oneBU $ lemmaForward "grab-intro/evalE"
 
   -- ** Basic expression transformation **
   apply . anyBU $ lemmaForward "grab-intro/add"
@@ -53,16 +60,21 @@ script = do
   apply . anyBU $ lemmaForward "commute-lit-id"
   apply . anyBU $ unfoldWith "id"
 
-  test <- Local $ newIORef 0
+  -- TODO: Move this into something like the loop below
+  apply . oneBU $ lemmaForward "grab-intro/app-to-lit"
+  apply $ oneBU (lemmaForward "App-Lam-intro" >>> anyBU fullBetaReduce)
 
-  repeatUntilFail $ do
-    apply . oneBU $ lemmaForward "grab->id"
+  -- test <- Local $ newIORef 0
 
-    Local $ modifyIORef test succ
+  -- -- TODO: See if something like this can work
+  -- repeatUntilFail $ do
+  --   apply . oneBU $ lemmaForward "grab->id"
 
-    testVal <- Local $ readIORef test
-    Local $ putStr "--------- test = "
-    Local $ print testVal
+  --   Local $ modifyIORef test succ
+
+  --   testVal <- Local $ readIORef test
+  --   Local $ putStr "--------- test = "
+  --   Local $ print testVal
 
   return ()
 
