@@ -30,15 +30,18 @@ script = do
 
   mapM_ assumeRule
     [ "grab-intro/add"
+    , "grab-intro/fn-call"
     , "grab->id"
     , "commute-lit-grab"
-    , "grab-intro/evalE"
+    -- , "grab-intro/evalE"
     , "App-Lam-intro"
     , "Var-succ"
     , "Lam-succ"
-    , "grab-intro/app-to-lit"
+    , "Lam-intro"
     , "add-to-addE"
+    , "join-grabs"
     , "commute-lit-id"
+    , "release-grab"
     ]
 
   maxBV <- Local $ newIORef 0
@@ -49,32 +52,18 @@ script = do
   apply . repeat $ anyBU (fullBetaReduce <+ unfoldWith "$")
   apply . oneTD $ unfoldWith "."
 
-  apply . oneBU $ lemmaForward "grab-intro/evalE"
+  -- apply . oneBU $ lemmaForward "grab-intro/evalE"
 
   -- ** Basic expression transformation **
   apply . anyBU $ lemmaForward "grab-intro/add"
   apply . try . repeat . anyBU $ lemmaForward "add-to-addE"
   apply . anyBU $ lemmaForward "commute-lit-grab"
 
-  -- TODO: Eliminate the hardcoding like this
+  -- ** Lambda transformation **
   apply . anyBU $ lemmaForward "commute-lit-id"
-  apply . anyBU $ unfoldWith "id"
+  apply . oneBU $ lemmaForward "grab-intro/fn-call"
+  apply . oneBU $ lemmaForward "Lam-intro"
 
-  -- TODO: Move this into something like the loop below
-  apply . oneBU $ lemmaForward "grab-intro/app-to-lit"
-  apply $ oneBU (lemmaForward "App-Lam-intro" >>> anyBU fullBetaReduce)
-
-  -- test <- Local $ newIORef 0
-
-  -- -- TODO: See if something like this can work
-  -- repeatUntilFail $ do
-  --   apply . oneBU $ lemmaForward "grab->id"
-
-  --   Local $ modifyIORef test succ
-
-  --   testVal <- Local $ readIORef test
-  --   Local $ putStr "--------- test = "
-  --   Local $ print testVal
-
-  return ()
+  -- -- ** Finish up **
+  apply . anyBU $ lemmaForward "release-grab"
 

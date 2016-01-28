@@ -1,4 +1,5 @@
 module Main where
+
 import           Shallow
 import           Deep
 import           Types
@@ -15,6 +16,7 @@ main = print . evalE $
 
 grab :: a -> a
 grab = error "grab: No grabs should be in generated code"
+{-# NOINLINE grab #-}
 
 -- This is a test RULE that can be removed:
 {-# RULES "grab->id" [~]
@@ -56,29 +58,27 @@ grab = error "grab: No grabs should be in generated code"
         Lam (succ n) x
   #-}
 
-{-# RULES "grab-intro/evalE"
-      forall x.
-        evalE x
-          =
-        evalE (grab x)
-  #-}
-
--- This is a restricted form of grab-intro/fn-call
-{-# RULES "grab-intro/app-to-lit"
-      forall f x.
-        grab (f (lit x))
-          =
-        (grab f) (grab (lit x))
-  #-}
-
-
--- TODO: See if this is possible:
--- {-# RULES "grab-intro/fn-call" [~]
---       forall f x.
---         grab (f x)
+-- {-# RULES "grab-intro/evalE"
+--       forall x.
+--         evalE x
 --           =
---         (grab f) (grab x)
+--         evalE (grab x)
 --   #-}
+
+-- TODO: See if it is possible to generalize this so that f :: a -> b
+{-# RULES "grab-intro/fn-call" [~]
+      forall (f :: a -> a) (x :: a).
+        grab (f x)
+          =
+        (grab f) (grab x)
+  #-}
+
+{-# RULES "Lam-intro" [~]
+      forall (f :: E a -> E b).
+        grab f
+          =
+        App (Lam 0 (f (Var 0)))
+  #-}
 
 {-# RULES "add-to-addE" [~]
      forall a b.
@@ -87,10 +87,22 @@ grab = error "grab: No grabs should be in generated code"
        addE (lit a) (lit b)
   #-}
 
-{-# RULES "commute-lit-id" [~]
+{-# RULES "join-grabs" [~]
       forall x.
-        lit (id x)
+        grab (grab x)
           =
-        id (lit x)
+        grab x
+  #-}
+
+{-# RULES "commute-lit-id" [~]
+      forall (f :: forall a. a -> a) x.
+        lit (f x)
+          =
+        f (lit x)
+  #-}
+
+{-# RULES "release-grab" [~]
+      forall x.
+        grab x = x
   #-}
 
