@@ -47,3 +47,11 @@ script = do
   apply . anyBU $ lemmaForward "intro-liftFn"
   apply . anyBU $ lemmaForward "addE-intro"
 
+  apply . oneBU $ unfoldWith "test"
+  apply $ anyBU fullBetaReduce
+
+  apply . anyBU $ unfoldWith "liftFn"
+  apply . anyBU $ fullBetaReduce
+  apply . anyBU $ unfoldWith "."
+  apply . repeat . anyBU $ fullBetaReduce
+
