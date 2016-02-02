@@ -28,42 +28,22 @@ script :: Shell ()
 script = do
   apply flattenModule
 
-  mapM_ assumeRule
-    [ "grab-intro/add"
-    , "grab-intro/fn-call"
-    , "grab->id"
-    , "commute-lit-grab"
-    -- , "grab-intro/evalE"
-    , "App-Lam-intro"
-    , "Var-succ"
-    , "Lam-succ"
-    , "Lam-intro"
-    , "add-to-addE"
-    , "join-grabs"
-    , "commute-lit-id"
-    , "release-grab"
-    ]
-
-  maxBV <- Local $ newIORef 0
-
   setPath $ rhsOf "main"
+
+  mapM_ assumeRule
+    [ "intro-evalE"
+    , "intro-liftFn"
+    , "intro-add-bind"
+    , "addE-intro"
+    ]
 
   -- Get rid of $s
   apply . repeat $ anyBU (fullBetaReduce <+ unfoldWith "$")
   apply . oneTD $ unfoldWith "."
 
-  -- apply . oneBU $ lemmaForward "grab-intro/evalE"
+  apply . oneTD $ lemmaForward "intro-evalE"
 
-  -- ** Basic expression transformation **
-  apply . anyBU $ lemmaForward "grab-intro/add"
-  apply . try . repeat . anyBU $ lemmaForward "add-to-addE"
-  apply . anyBU $ lemmaForward "commute-lit-grab"
-
-  -- ** Lambda transformation **
-  apply . anyBU $ lemmaForward "commute-lit-id"
-  apply . oneBU $ lemmaForward "grab-intro/fn-call"
-  apply . oneBU $ lemmaForward "Lam-intro"
-
-  -- -- ** Finish up **
-  apply . anyBU $ lemmaForward "release-grab"
+  apply . anyBU $ lemmaForward "intro-add-bind"
+  apply . anyBU $ lemmaForward "intro-liftFn"
+  apply . anyBU $ lemmaForward "addE-intro"
 

@@ -6,6 +6,6 @@ module Shallow
 
 import           Types
 
-add :: Int -> Int -> E Int
-add a b = Lit (a + b)
+add :: Int -> Int -> Int
+add a b = a + b
 

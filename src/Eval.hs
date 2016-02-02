@@ -1,9 +1,14 @@
 {-# LANGUAGE GADTs #-}
 module Eval
-  (evalE)
+  (eval
+  ,evalE
+  )
   where
 
 import           Types
+
+eval :: a -> a
+eval = id
 
 evalE :: E a -> a
 evalE (Add a b) = evalE a + evalE b
